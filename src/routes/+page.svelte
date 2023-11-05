@@ -1,11 +1,11 @@
 <script lang="ts">
-	console.log('DEBUG: this loads..');
-
-	function login() {
-		console.log('DEBUG: login');
-	}
+	import { userStore } from '$lib/stores';
 </script>
 
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-<button on:click={login}>login</button>
+<h1>MS Entra ID OAuth sample app</h1>
+
+{#if $userStore}
+	<span>Username: {$userStore.name}</span>
+	<br />
+	<span>AccessToken: {$userStore.accessToken.slice(0, 10)}...</span>
+{/if}

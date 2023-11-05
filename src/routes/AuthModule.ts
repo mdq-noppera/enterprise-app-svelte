@@ -22,7 +22,7 @@ const MSAL_CONFIG: Configuration = {
 		authority: 'https://login.microsoftonline.com/3dd30cf6-7303-4de6-aa64-f88072f89e11'
 	},
 	cache: {
-		cacheLocation: 'sessionStorage', // This configures where your cache will be stored
+		cacheLocation: 'localStorage', // This configures where your cache will be stored
 		storeAuthStateInCookie: false // Set this to "true" if you are having issues on IE11 or Edge
 	},
 	system: {
@@ -54,8 +54,8 @@ const MSAL_CONFIG: Configuration = {
  * AuthModule for application - handles authentication in app.
  */
 export class AuthModule {
-	private myMSALObj: PublicClientApplication; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/classes/_src_app_publicclientapplication_.publicclientapplication.html
-	private account: AccountInfo | null; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_account_accountinfo_.html
+	myMSALObj: PublicClientApplication; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/classes/_src_app_publicclientapplication_.publicclientapplication.html
+	account: AccountInfo | null; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_account_accountinfo_.html
 	private loginRedirectRequest: RedirectRequest; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html
 	private loginRequest: PopupRequest; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html
 	private profileRedirectRequest: RedirectRequest;
@@ -143,12 +143,13 @@ export class AuthModule {
 	 *
 	 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#redirect-apis
 	 */
-	loadAuthModule(): void {
+	async loadAuthModule(): Promise<void> {
+		await this.myMSALObj.initialize();
 		console.log('AuthModule.loadAuthModule()');
 		this.myMSALObj
 			.handleRedirectPromise()
 			.then((resp: AuthenticationResult | null) => {
-				console.log('AuthModule.handleRedirectPromise()');
+				console.log('AuthModule.handleRedirectPromise() resp', resp);
 				this.handleResponse(resp);
 			})
 			.catch(console.error);
@@ -198,7 +199,7 @@ export class AuthModule {
 	 * Calls loginPopup or loginRedirect based on given signInType.
 	 * @param signInType
 	 */
-	login(signInType: 'loginPopup' | 'loginRedirect'): void {
+	async login(signInType: 'loginPopup' | 'loginRedirect'): Promise<void> {
 		if (signInType === 'loginPopup') {
 			this.myMSALObj
 				.loginPopup(this.loginRequest)
@@ -207,7 +208,7 @@ export class AuthModule {
 				})
 				.catch(console.error);
 		} else if (signInType === 'loginRedirect') {
-			this.myMSALObj.loginRedirect(this.loginRedirectRequest);
+			await this.myMSALObj.loginRedirect(this.loginRedirectRequest);
 		}
 	}
 
@@ -304,7 +305,7 @@ export class AuthModule {
 	/**
 	 * Gets a token silently, or falls back to interactive redirect.
 	 */
-	private async getTokenRedirect(
+	async getTokenRedirect(
 		silentRequest: SilentRequest,
 		interactiveRequest: RedirectRequest
 	): Promise<string | null> {
