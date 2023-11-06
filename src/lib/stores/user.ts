@@ -3,4 +3,4 @@ import { writable, type Writable } from 'svelte/store';
 
 type IsaAccount = AccountInfo & { accessToken: string };
 
-export const userStore: Writable<IsaAccount> = writable(null);
+export const userStore: Writable<IsaAccount | null> = writable(null);
